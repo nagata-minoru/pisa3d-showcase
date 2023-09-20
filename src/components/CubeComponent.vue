@@ -3,7 +3,13 @@
     <div ref="rendererDom" style="width: 100vw; height: 100vh;"></div>
     <div style="position: absolute; top: 10px; left: 10px;">
       <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="wireframeSwitch" v-model="isWireframe" @change="toggleWireframe">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="wireframeSwitch"
+          v-model="isWireframe"
+          @change="toggleWireframe"
+        />
         <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
       </div>
     </div>
@@ -11,12 +17,12 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, Ref, toRefs } from 'vue';
-import * as THREE from 'three';
+import { ref, onMounted, onBeforeUnmount, Ref, toRefs } from "vue";
+import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export default {
-  name: 'CubeComponent',
+  name: "CubeComponent",
   setup() {
     const rendererDom: Ref<unknown> = ref(null);
     let scene: THREE.Scene;
@@ -61,9 +67,9 @@ export default {
 
     return {
       ...toRefs({ rendererDom, isWireframe }),
-      toggleWireframe
+      toggleWireframe,
     };
-  }
+  },
 };
 </script>
 
