@@ -46,7 +46,7 @@ export default {
   setup() {
     const rendererDom: Ref<unknown> = ref(null);
     const isWireframe = ref(false);
-    const showCameraHelper = ref(false);
+    const showCameraHelper = ref(true);
     const showOBB = ref(false);
     let animationId: number;
     let scene: THREE.Scene;
@@ -58,7 +58,7 @@ export default {
 
     const createDirectionalLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-      directionalLight.position.set(1, 1, 1); // 光の位置を設定
+      directionalLight.position.set(20, 20, 20); // 光の位置を設定
       directionalLight.castShadow = true;
       directionalLight.shadow.mapSize.width = 4096;
       directionalLight.shadow.mapSize.height = 4096;
@@ -66,7 +66,7 @@ export default {
       directionalLight.shadow.camera.right = 5;
       directionalLight.shadow.camera.top = 5;
       directionalLight.shadow.camera.bottom = -5;
-      directionalLight.shadow.camera.far = 10;
+      directionalLight.shadow.camera.far = 40;
       return directionalLight;
     };
 
@@ -118,7 +118,7 @@ export default {
       scene.add(new THREE.GridHelper(20, 20));
       scene.add(createPlane());
 
-      cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: "springgreen" }));
+      cube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
       cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
       scene.add(cube);
