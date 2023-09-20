@@ -8,7 +8,7 @@
           type="checkbox"
           id="wireframeSwitch"
           v-model="isWireframe"
-          @change="toggleWireframe"
+          @change="updateWireframeVisibility"
         />
         <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
       </div>
@@ -18,7 +18,7 @@
           type="checkbox"
           id="cameraHelperSwitch"
           v-model="showCameraHelper"
-          @change="toggleCameraHelper"
+          @change="updateCameraHelperVisibility"
         />
         <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
       </div>
@@ -51,6 +51,7 @@ export default {
       renderer.setSize(window.innerWidth, window.innerHeight);
       (rendererDom.value as HTMLDivElement).appendChild(renderer.domElement);
       renderer.shadowMap.enabled = true;
+      renderer.setClearColor("lightsteelblue");
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
@@ -70,13 +71,16 @@ export default {
       scene.add(cameraHelper);
       cameraHelper.visible = showCameraHelper.value;
 
+      scene.add(new THREE.GridHelper(20, 20));
+
       scene.add(createPlane());
 
-      cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+      cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
+      cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
       scene.add(cube);
 
-      camera.position.z = 5;
+      camera.position.set(5, 5, -5);
 
       new OrbitControls(camera, renderer.domElement);
 
@@ -92,27 +96,22 @@ export default {
       renderer.render(scene, camera);
     };
 
-    const toggleWireframe = () => {
-      isWireframe.value = !isWireframe.value;
-      (cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
-    };
+    const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
 
-    const toggleCameraHelper = () => {
-      cameraHelper.visible = !cameraHelper.visible;
-    };
+    const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
     const createPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
-        new THREE.MeshLambertMaterial({ color: 0x0096d6, side: THREE.DoubleSide })
+        new THREE.MeshLambertMaterial({ color: "darkgreen", side: THREE.DoubleSide })
       );
-      plane.position.y = -2;
+      plane.position.y = -0.1;
       plane.rotateX(Math.PI / 2);
       plane.receiveShadow = true;
       return plane;
     };
 
-    return { rendererDom, isWireframe, toggleWireframe, showCameraHelper, toggleCameraHelper };
+    return { rendererDom, isWireframe, updateWireframeVisibility, showCameraHelper, updateCameraHelperVisibility };
   },
 };
 </script>
