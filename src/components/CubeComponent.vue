@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, Ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount, Ref, toRefs } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
@@ -60,7 +60,7 @@ export default {
     };
 
     return {
-      rendererDom,
+      ...toRefs({ rendererDom, isWireframe }),
       toggleWireframe
     };
   }
