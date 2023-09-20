@@ -12,6 +12,16 @@
         />
         <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
       </div>
+      <div class="form-check form-switch" style="margin-top: 10px;">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="cameraHelperSwitch"
+          v-model="showCameraHelper"
+          @change="toggleCameraHelper"
+        />
+        <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
+      </div>
     </div>
   </div>
 </template>
@@ -26,11 +36,13 @@ export default {
   setup() {
     const rendererDom: Ref<unknown> = ref(null);
     const isWireframe = ref(false);
+    const showCameraHelper = ref(false);
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let cube: THREE.Mesh;
     let animationId: number;
+    let cameraHelper: THREE.CameraHelper;
 
     onMounted(() => {
       scene = new THREE.Scene();
@@ -38,15 +50,30 @@ export default {
       renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
       (rendererDom.value as HTMLDivElement).appendChild(renderer.domElement);
+      renderer.shadowMap.enabled = true;
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
       directionalLight.position.set(1, 1, 1); // 光の位置を設定
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 4096;
+      directionalLight.shadow.mapSize.height = 4096;
+      directionalLight.shadow.camera.left = -5;
+      directionalLight.shadow.camera.right = 5;
+      directionalLight.shadow.camera.top = 5;
+      directionalLight.shadow.camera.bottom = -5;
+      directionalLight.shadow.camera.far = 10;
       scene.add(directionalLight);
-      scene.add(new THREE.DirectionalLightHelper(directionalLight, 0.5));
+
+      cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+      scene.add(cameraHelper);
+      cameraHelper.visible = showCameraHelper.value;
+
+      scene.add(createPlane());
 
       cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+      cube.castShadow = true;
       scene.add(cube);
 
       camera.position.z = 5;
@@ -70,7 +97,22 @@ export default {
       (cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
     };
 
-    return { rendererDom, isWireframe, toggleWireframe };
+    const toggleCameraHelper = () => {
+      cameraHelper.visible = !cameraHelper.visible;
+    };
+
+    const createPlane = (): THREE.Mesh => {
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshLambertMaterial({ color: 0x0096d6, side: THREE.DoubleSide })
+      );
+      plane.position.y = -2;
+      plane.rotateX(Math.PI / 2);
+      plane.receiveShadow = true;
+      return plane;
+    };
+
+    return { rendererDom, isWireframe, toggleWireframe, showCameraHelper, toggleCameraHelper };
   },
 };
 </script>
