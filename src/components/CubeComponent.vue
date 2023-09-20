@@ -6,6 +6,7 @@
 <script lang="ts">
 import { ref, onMounted, onBeforeUnmount, Ref } from 'vue';
 import * as THREE from 'three';
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export default {
   name: 'CubeComponent',
@@ -31,6 +32,8 @@ export default {
       scene.add(cube);
 
       camera.position.z = 5;
+
+      new OrbitControls(camera, renderer.domElement);
 
       animate();
     });
