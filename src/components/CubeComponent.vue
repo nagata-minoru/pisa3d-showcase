@@ -46,6 +46,11 @@
         <input class="form-check-input" type="checkbox" id="rotateZSwitch" v-model="rotateZ" />
         <label class="form-check-label" for="rotateZSwitch">Z軸で回転</label>
       </div>
+
+      <!-- ローテーションリセットボタン -->
+      <div style="margin-top: 10px;">
+        <button @click="resetRotation" class="btn btn-primary">ローテーションリセット</button>
+      </div>
     </div>
   </div>
 </template>
@@ -221,6 +226,8 @@ export default {
     const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
+    const resetRotation = () => cube.rotation.set(0, 0, 0); // キューブのローテーションをリセットする関数
+
     return {
       rendererDom,
       isWireframe,
@@ -230,6 +237,7 @@ export default {
       rotateX,
       rotateY,
       rotateZ,
+      resetRotation
     };
   },
 };
