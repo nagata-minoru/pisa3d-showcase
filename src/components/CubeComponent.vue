@@ -98,7 +98,7 @@ export default {
     };
 
     // 地面の作成
-    const createPlane = (): THREE.Mesh => {
+    const createFloorPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
         new THREE.MeshLambertMaterial({ color: "darkgreen", side: THREE.DoubleSide })
@@ -114,7 +114,7 @@ export default {
       const scene = new THREE.Scene();
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
       scene.add(new THREE.GridHelper(20, 20));
-      scene.add(createPlane());
+      scene.add(createFloorPlane());
       return scene;
     };
 
@@ -137,7 +137,6 @@ export default {
       cameraHelper.visible = showCameraHelper.value;
 
       scene.add(new THREE.GridHelper(20, 20));
-      scene.add(createPlane());
 
       cube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
