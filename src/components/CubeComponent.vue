@@ -83,7 +83,7 @@ export default {
     // カメラの作成
     const createCamera = () => {
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(5, 5, -5);
+      camera.position.set(10, 10, -10);
       return camera;
     };
 
@@ -101,7 +101,7 @@ export default {
     const createFloorPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
-        new THREE.MeshLambertMaterial({ color: "darkgreen", side: THREE.DoubleSide })
+        new THREE.MeshLambertMaterial({ color: "tan", side: THREE.DoubleSide })
       );
       plane.position.y = -0.1;
       plane.rotateX(Math.PI / 2);
@@ -112,7 +112,7 @@ export default {
     // シーンの作成
     const createScene = () => {
       const scene = new THREE.Scene();
-      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      scene.add(new THREE.AmbientLight(0xffffff, 0.1));
       scene.add(new THREE.GridHelper(20, 20));
       scene.add(createFloorPlane());
       return scene;
