@@ -22,6 +22,16 @@
         />
         <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
       </div>
+      <div class="form-check form-switch" style="margin-top: 10px;">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="obbSwitch"
+          v-model="showOBB"
+          @change="updateOBBVisibility"
+        />
+        <label class="form-check-label" for="obbSwitch">OBB 表示</label>
+      </div>
     </div>
   </div>
 </template>
@@ -37,12 +47,14 @@ export default {
     const rendererDom: Ref<unknown> = ref(null);
     const isWireframe = ref(false);
     const showCameraHelper = ref(false);
+    const showOBB = ref(false);
     let animationId: number;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let cameraHelper: THREE.CameraHelper;
     let cube: THREE.Mesh;
+    let obbHelper: THREE.BoxHelper;
 
     const createDirectionalLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -59,10 +71,10 @@ export default {
     };
 
     const createCamera = () => {
-     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-     camera.position.set(5, 5, -5);
-     return camera;
-    }
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(5, 5, -5);
+      return camera;
+    };
 
     const createRenderer = () => {
       const renderer = new THREE.WebGLRenderer();
@@ -71,7 +83,7 @@ export default {
       renderer.shadowMap.enabled = true;
       renderer.setClearColor("lightsteelblue");
       return renderer;
-    }
+    };
 
     const createPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
@@ -110,6 +122,12 @@ export default {
       cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
       scene.add(cube);
 
+      // OBBの計算とヘルパーの追加
+      new THREE.Box3().setFromObject(cube);
+      obbHelper = new THREE.BoxHelper(cube, 0xff0000); // 赤色でOBBを表示
+      obbHelper.visible = showOBB.value;
+      scene.add(obbHelper);
+
       new OrbitControls(camera, renderer.domElement);
 
       animate();
@@ -128,7 +146,17 @@ export default {
 
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
-    return { rendererDom, isWireframe, updateWireframeVisibility, showCameraHelper, updateCameraHelperVisibility };
+    const updateOBBVisibility = () => (obbHelper.visible = showOBB.value);
+
+    return {
+      rendererDom,
+      isWireframe,
+      updateWireframeVisibility,
+      showCameraHelper,
+      updateCameraHelperVisibility,
+      showOBB,
+      updateOBBVisibility,
+    };
   },
 };
 </script>
