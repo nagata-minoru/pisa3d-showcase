@@ -46,6 +46,7 @@
 import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OBB } from 'three/examples/jsm/math/OBB';
 
 export default {
   name: "CubeComponent",
@@ -53,9 +54,11 @@ export default {
     const rendererDom: Ref<unknown> = ref(null); // レンダリング領域の参照
 
     // 各種状態の定義
-    const isWireframe = ref(false);
+    const isWireframe = ref(true);
     const showCameraHelper = ref(false);
     const showOBB = ref(false);
+
+    const obb = new OBB();
 
     let animationId: number;
     let scene: THREE.Scene;
@@ -118,9 +121,37 @@ export default {
       return scene;
     };
 
+    // 小さい球を作成する関数
+    const createSmallSphere = (x: number, y: number, z: number): THREE.Mesh => {
+      const sphereGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+      const sphereMaterial = new THREE.MeshPhongMaterial({ color: "blue" });
+      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+      sphere.position.set(x, y, z);
+      sphere.castShadow = true;
+      return sphere;
+    };
+
     // アニメーションのループ処理
     const animate = () => {
       animationId = requestAnimationFrame(animate);
+
+      // 各小さい球とキューブのOBBとの間で衝突判定を行う
+      const transformedOBB = obb.clone().applyMatrix4(cube.matrixWorld);
+      scene.children.forEach(child => {
+        if (child instanceof THREE.Mesh && child.geometry instanceof THREE.SphereGeometry) {
+          const sphere = new THREE.Sphere();
+          child.geometry.computeBoundingSphere();
+          sphere.copy(child.geometry.boundingSphere!);
+          sphere.applyMatrix4(child.matrixWorld);
+
+          if (transformedOBB.intersectsSphere(sphere)) {
+            (child.material as THREE.MeshPhongMaterial).color.set(0xff0000); // 衝突した場合、球の色を赤に変更
+          } else {
+            (child.material as THREE.MeshPhongMaterial).color.set(0x0000ff); // 衝突していない場合、球の色を青に戻す
+          }
+        }
+      });
+
       renderer.render(scene, camera);
     };
 
@@ -143,14 +174,33 @@ export default {
       // キューブのセットアップとシーンへの追加
       cube = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
-      cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
+
+      const cubeHeight = (cube.geometry as THREE.BoxGeometry).parameters.height;
+      cube.position.y = cubeHeight / 2;
+      updateWireframeVisibility();
       scene.add(cube);
 
       // キューブのOBBの計算とヘルパーの追加
-      new THREE.Box3().setFromObject(cube);
+      cube.geometry.computeBoundingBox();
+      obb.fromBox3(cube.geometry.boundingBox as THREE.Box3);
       obbHelper = new THREE.BoxHelper(cube, 0xff0000); // 赤色でOBBを表示
       obbHelper.visible = showOBB.value;
       scene.add(obbHelper);
+
+      // キューブに沿って小さい球を10x10x10個追加
+      const spacing = 1.2; // 球と球の間のスペース
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+          for (let k = 0; k < 10; k++) {
+            const sphere = createSmallSphere(
+              -5 + i * spacing,
+              -5 + j * spacing + cubeHeight / 2,
+              -5 + k * spacing
+            );
+            scene.add(sphere);
+          }
+        }
+      }
 
       new OrbitControls(camera, renderer.domElement); // カメラのコントロールのセットアップ
       animate(); // アニメーションの開始
