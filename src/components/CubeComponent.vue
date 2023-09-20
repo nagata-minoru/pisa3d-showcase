@@ -1,7 +1,11 @@
 <template>
+  <!-- メインのコンテナ -->
   <div>
+    <!-- 3Dレンダリング領域 -->
     <div ref="rendererDom" style="width: 100vw; height: 100vh;"></div>
+    <!-- ツールバーの配置 -->
     <div style="position: absolute; top: 10px; left: 10px;">
+      <!-- ワイヤフレーム表示のスイッチ -->
       <div class="form-check form-switch">
         <input
           class="form-check-input"
@@ -12,6 +16,7 @@
         />
         <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
       </div>
+      <!-- CameraHelper 表示のスイッチ -->
       <div class="form-check form-switch" style="margin-top: 10px;">
         <input
           class="form-check-input"
@@ -22,6 +27,7 @@
         />
         <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
       </div>
+      <!-- OBB 表示のスイッチ -->
       <div class="form-check form-switch" style="margin-top: 10px;">
         <input
           class="form-check-input"
@@ -44,10 +50,13 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 export default {
   name: "CubeComponent",
   setup() {
-    const rendererDom: Ref<unknown> = ref(null);
+    const rendererDom: Ref<unknown> = ref(null); // レンダリング領域の参照
+
+    // 各種状態の定義
     const isWireframe = ref(false);
     const showCameraHelper = ref(true);
     const showOBB = ref(false);
+
     let animationId: number;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
@@ -56,6 +65,7 @@ export default {
     let cube: THREE.Mesh;
     let obbHelper: THREE.BoxHelper;
 
+    // 平行光源の作成
     const createDirectionalLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
       directionalLight.position.set(20, 20, 20); // 光の位置を設定
@@ -70,12 +80,14 @@ export default {
       return directionalLight;
     };
 
+    // カメラの作成
     const createCamera = () => {
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(5, 5, -5);
       return camera;
     };
 
+    // レンダラの作成
     const createRenderer = () => {
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -85,6 +97,7 @@ export default {
       return renderer;
     };
 
+    // 地面の作成
     const createPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
@@ -96,6 +109,7 @@ export default {
       return plane;
     };
 
+    // シーンの作成
     const createScene = () => {
       const scene = new THREE.Scene();
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -104,6 +118,13 @@ export default {
       return scene;
     };
 
+    // アニメーションのループ処理
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+
+    // コンポーネントがマウントされたときの処理
     onMounted(() => {
       camera = createCamera();
       renderer = createRenderer();
@@ -134,19 +155,14 @@ export default {
       animate();
     });
 
+    // コンポーネントがアンマウントされる前の処理
     onBeforeUnmount(() => {
       cancelAnimationFrame(animationId);
     });
 
-    const animate = () => {
-      animationId = requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    };
-
+    // 各種表示の更新処理
     const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
-
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
-
     const updateOBBVisibility = () => (obbHelper.visible = showOBB.value);
 
     return {
