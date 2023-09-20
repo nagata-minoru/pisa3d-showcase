@@ -41,6 +41,11 @@ export default {
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(1, 1, 1); // 光の位置を設定
+      scene.add(directionalLight);
+      scene.add(new THREE.DirectionalLightHelper(directionalLight, 0.5));
+
       cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
       scene.add(cube);
 
