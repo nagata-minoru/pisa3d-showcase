@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, Ref, toRefs } from "vue";
+import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
@@ -25,11 +25,11 @@ export default {
   name: "CubeComponent",
   setup() {
     const rendererDom: Ref<unknown> = ref(null);
+    const isWireframe = ref(false);
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let cube: THREE.Mesh;
-    let isWireframe = false;
     let animationId: number;
 
     onMounted(() => {
@@ -39,9 +39,9 @@ export default {
       renderer.setSize(window.innerWidth, window.innerHeight);
       (rendererDom.value as HTMLDivElement).appendChild(renderer.domElement);
 
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      cube = new THREE.Mesh(geometry, material);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+      cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
       scene.add(cube);
 
       camera.position.z = 5;
@@ -61,14 +61,11 @@ export default {
     };
 
     const toggleWireframe = () => {
-      isWireframe = !isWireframe;
-      (cube.material as THREE.MeshBasicMaterial).wireframe = isWireframe;
+      isWireframe.value = !isWireframe.value;
+      (cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
     };
 
-    return {
-      ...toRefs({ rendererDom, isWireframe }),
-      toggleWireframe,
-    };
+    return { rendererDom, isWireframe, toggleWireframe };
   },
 };
 </script>
