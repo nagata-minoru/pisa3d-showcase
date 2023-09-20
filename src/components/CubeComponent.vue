@@ -27,17 +27,6 @@
         />
         <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
       </div>
-      <!-- OBB 表示のスイッチ -->
-      <div class="form-check form-switch" style="margin-top: 10px;">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="obbSwitch"
-          v-model="showOBB"
-          @change="updateOBBVisibility"
-        />
-        <label class="form-check-label" for="obbSwitch">OBB 表示</label>
-      </div>
     </div>
   </div>
 </template>
@@ -46,7 +35,7 @@
 import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { OBB } from 'three/examples/jsm/math/OBB';
+import { OBB } from "three/examples/jsm/math/OBB";
 
 export default {
   name: "CubeComponent",
@@ -56,7 +45,6 @@ export default {
     // 各種状態の定義
     const isWireframe = ref(true);
     const showCameraHelper = ref(false);
-    const showOBB = ref(false);
 
     const obb = new OBB();
 
@@ -66,7 +54,6 @@ export default {
     let renderer: THREE.WebGLRenderer;
     let cameraHelper: THREE.CameraHelper;
     let cube: THREE.Mesh;
-    let obbHelper: THREE.BoxHelper;
 
     // 平行光源の作成
     const createDirectionalLight = () => {
@@ -135,24 +122,28 @@ export default {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
+      cube.rotateX(0.001);
+      cube.rotateY(0.001);
+      cube.rotateZ(0.001);
+
       // 各小さい球とキューブのOBBとの間で衝突判定を行う
       const transformedOBB = obb.clone().applyMatrix4(cube.matrixWorld);
-      scene.children.forEach(child => {
-        if (child instanceof THREE.Mesh && child.geometry instanceof THREE.SphereGeometry) {
-          const sphere = new THREE.Sphere();
-          child.geometry.computeBoundingSphere();
-          sphere.copy(child.geometry.boundingSphere!);
-          sphere.applyMatrix4(child.matrixWorld);
+      scene.children.forEach((child) => {
+        if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
 
-          if (transformedOBB.intersectsSphere(sphere)) {
-            (child.material as THREE.MeshPhongMaterial).color.set(0xff0000); // 衝突した場合、球の色を赤に変更
-          } else {
-            (child.material as THREE.MeshPhongMaterial).color.set(0x0000ff); // 衝突していない場合、球の色を青に戻す
-          }
-        }
+        // 衝突した場合球の色を赤に, そうでない場合は青に変更
+        (child.material as THREE.MeshPhongMaterial).color.set(
+          transformedOBB.containsPoint(child.position) ? "red" : "blue"
+        );
       });
 
       renderer.render(scene, camera);
+    };
+
+    window.onresize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     };
 
     // コンポーネントがマウントされたときの処理
@@ -183,22 +174,13 @@ export default {
       // キューブのOBBの計算とヘルパーの追加
       cube.geometry.computeBoundingBox();
       obb.fromBox3(cube.geometry.boundingBox as THREE.Box3);
-      obbHelper = new THREE.BoxHelper(cube, 0xff0000); // 赤色でOBBを表示
-      obbHelper.visible = showOBB.value;
-      scene.add(obbHelper);
 
       // キューブに沿って小さい球を10x10x10個追加
       const spacing = 1.2; // 球と球の間のスペース
       for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 10; j++) {
-          for (let k = 0; k < 10; k++) {
-            const sphere = createSmallSphere(
-              -5 + i * spacing,
-              -5 + j * spacing + cubeHeight / 2,
-              -5 + k * spacing
-            );
-            scene.add(sphere);
-          }
+          for (let k = 0; k < 10; k++)
+            scene.add(createSmallSphere(-5 + i * spacing, -5 + j * spacing + cubeHeight / 2, -5 + k * spacing));
         }
       }
 
@@ -214,7 +196,6 @@ export default {
     // 各種表示の更新処理
     const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
-    const updateOBBVisibility = () => (obbHelper.visible = showOBB.value);
 
     return {
       rendererDom,
@@ -222,8 +203,6 @@ export default {
       updateWireframeVisibility,
       showCameraHelper,
       updateCameraHelperVisibility,
-      showOBB,
-      updateOBBVisibility,
     };
   },
 };
