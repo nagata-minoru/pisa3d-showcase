@@ -1,6 +1,13 @@
 <template>
-  <div ref="rendererDom"></div>
-  <button @click="toggleWireframe">ワイヤフレーム切り替え</button>
+  <div>
+    <div ref="rendererDom" style="width: 100vw; height: 100vh;"></div>
+    <div style="position: absolute; top: 10px; left: 10px;">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="wireframeSwitch" v-model="isWireframe" @change="toggleWireframe">
+        <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
