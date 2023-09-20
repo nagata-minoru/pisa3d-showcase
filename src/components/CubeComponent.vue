@@ -110,6 +110,7 @@ export default {
       scene = createScene();
 
       const directionalLight = createDirectionalLight();
+      scene.add(directionalLight);
       cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
       scene.add(cameraHelper);
       cameraHelper.visible = showCameraHelper.value;
