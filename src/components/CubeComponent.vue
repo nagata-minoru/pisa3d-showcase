@@ -37,24 +37,14 @@ export default {
     const rendererDom: Ref<unknown> = ref(null);
     const isWireframe = ref(false);
     const showCameraHelper = ref(false);
+    let animationId: number;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
-    let cube: THREE.Mesh;
-    let animationId: number;
     let cameraHelper: THREE.CameraHelper;
+    let cube: THREE.Mesh;
 
-    onMounted(() => {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      (rendererDom.value as HTMLDivElement).appendChild(renderer.domElement);
-      renderer.shadowMap.enabled = true;
-      renderer.setClearColor("lightsteelblue");
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
+    const createDirectionalLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
       directionalLight.position.set(1, 1, 1); // 光の位置を設定
       directionalLight.castShadow = true;
@@ -65,22 +55,60 @@ export default {
       directionalLight.shadow.camera.top = 5;
       directionalLight.shadow.camera.bottom = -5;
       directionalLight.shadow.camera.far = 10;
-      scene.add(directionalLight);
+      return directionalLight;
+    };
 
+    const createCamera = () => {
+     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+     camera.position.set(5, 5, -5);
+     return camera;
+    }
+
+    const createRenderer = () => {
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      (rendererDom.value as HTMLDivElement).appendChild(renderer.domElement);
+      renderer.shadowMap.enabled = true;
+      renderer.setClearColor("lightsteelblue");
+      return renderer;
+    }
+
+    const createPlane = (): THREE.Mesh => {
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshLambertMaterial({ color: "darkgreen", side: THREE.DoubleSide })
+      );
+      plane.position.y = -0.1;
+      plane.rotateX(Math.PI / 2);
+      plane.receiveShadow = true;
+      return plane;
+    };
+
+    const createScene = () => {
+      const scene = new THREE.Scene();
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      scene.add(new THREE.GridHelper(20, 20));
+      scene.add(createPlane());
+      return scene;
+    };
+
+    onMounted(() => {
+      camera = createCamera();
+      renderer = createRenderer();
+      scene = createScene();
+
+      const directionalLight = createDirectionalLight();
       cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
       scene.add(cameraHelper);
       cameraHelper.visible = showCameraHelper.value;
 
       scene.add(new THREE.GridHelper(20, 20));
-
       scene.add(createPlane());
 
       cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
       cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
       scene.add(cube);
-
-      camera.position.set(5, 5, -5);
 
       new OrbitControls(camera, renderer.domElement);
 
@@ -99,17 +127,6 @@ export default {
     const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
 
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
-
-    const createPlane = (): THREE.Mesh => {
-      const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 10),
-        new THREE.MeshLambertMaterial({ color: "darkgreen", side: THREE.DoubleSide })
-      );
-      plane.position.y = -0.1;
-      plane.rotateX(Math.PI / 2);
-      plane.receiveShadow = true;
-      return plane;
-    };
 
     return { rendererDom, isWireframe, updateWireframeVisibility, showCameraHelper, updateCameraHelperVisibility };
   },
