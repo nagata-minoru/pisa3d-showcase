@@ -16,6 +16,7 @@
         />
         <label class="form-check-label" for="wireframeSwitch">ワイヤフレーム表示</label>
       </div>
+
       <!-- CameraHelper 表示のスイッチ -->
       <div class="form-check form-switch" style="margin-top: 10px;">
         <input
@@ -26,6 +27,24 @@
           @change="updateCameraHelperVisibility"
         />
         <label class="form-check-label" for="cameraHelperSwitch">CameraHelper 表示</label>
+      </div>
+
+      <!-- X軸での回転スイッチ -->
+      <div class="form-check form-switch" style="margin-top: 10px;">
+        <input class="form-check-input" type="checkbox" id="rotateXSwitch" v-model="rotateX" />
+        <label class="form-check-label" for="rotateXSwitch">X軸で回転</label>
+      </div>
+
+      <!-- Y軸での回転スイッチ -->
+      <div class="form-check form-switch" style="margin-top: 10px;">
+        <input class="form-check-input" type="checkbox" id="rotateYSwitch" v-model="rotateY" />
+        <label class="form-check-label" for="rotateYSwitch">Y軸で回転</label>
+      </div>
+
+      <!-- Z軸での回転スイッチ -->
+      <div class="form-check form-switch" style="margin-top: 10px;">
+        <input class="form-check-input" type="checkbox" id="rotateZSwitch" v-model="rotateZ" />
+        <label class="form-check-label" for="rotateZSwitch">Z軸で回転</label>
       </div>
     </div>
   </div>
@@ -45,6 +64,11 @@ export default {
     // 各種状態の定義
     const isWireframe = ref(true);
     const showCameraHelper = ref(false);
+
+    // X, Y, Z軸での回転の状態を管理するリアクティブ変数
+    const rotateX = ref(false);
+    const rotateY = ref(false);
+    const rotateZ = ref(false);
 
     const obb = new OBB();
 
@@ -122,9 +146,9 @@ export default {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      cube.rotateX(0.001);
-      cube.rotateY(0.001);
-      cube.rotateZ(0.001);
+      if (rotateX.value) cube.rotateX(0.01);
+      if (rotateY.value) cube.rotateY(0.01);
+      if (rotateZ.value) cube.rotateZ(0.01);
 
       // 各小さい球とキューブのOBBとの間で衝突判定を行う
       const transformedOBB = obb.clone().applyMatrix4(cube.matrixWorld);
@@ -203,6 +227,9 @@ export default {
       updateWireframeVisibility,
       showCameraHelper,
       updateCameraHelperVisibility,
+      rotateX,
+      rotateY,
+      rotateZ,
     };
   },
 };
