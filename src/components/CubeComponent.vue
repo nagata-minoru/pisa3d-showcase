@@ -54,7 +54,7 @@ export default {
 
     // 各種状態の定義
     const isWireframe = ref(false);
-    const showCameraHelper = ref(true);
+    const showCameraHelper = ref(false);
     const showOBB = ref(false);
 
     let animationId: number;
@@ -72,18 +72,18 @@ export default {
       directionalLight.castShadow = true;
       directionalLight.shadow.mapSize.width = 4096;
       directionalLight.shadow.mapSize.height = 4096;
-      directionalLight.shadow.camera.left = -5;
-      directionalLight.shadow.camera.right = 5;
-      directionalLight.shadow.camera.top = 5;
-      directionalLight.shadow.camera.bottom = -5;
-      directionalLight.shadow.camera.far = 40;
+      directionalLight.shadow.camera.left = -15;
+      directionalLight.shadow.camera.right = 15;
+      directionalLight.shadow.camera.top = 15;
+      directionalLight.shadow.camera.bottom = -15;
+      directionalLight.shadow.camera.far = 100;
       return directionalLight;
     };
 
     // カメラの作成
     const createCamera = () => {
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(10, 10, -10);
+      camera.position.set(15, 15, -15);
       return camera;
     };
 
@@ -100,7 +100,7 @@ export default {
     // 地面の作成
     const createFloorPlane = (): THREE.Mesh => {
       const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 10),
+        new THREE.PlaneGeometry(40, 40),
         new THREE.MeshLambertMaterial({ color: "tan", side: THREE.DoubleSide })
       );
       plane.position.y = -0.1;
@@ -113,7 +113,7 @@ export default {
     const createScene = () => {
       const scene = new THREE.Scene();
       scene.add(new THREE.AmbientLight(0xffffff, 0.1));
-      scene.add(new THREE.GridHelper(20, 20));
+      scene.add(new THREE.GridHelper(50, 20));
       scene.add(createFloorPlane());
       return scene;
     };
@@ -126,32 +126,34 @@ export default {
 
     // コンポーネントがマウントされたときの処理
     onMounted(() => {
+      // 3Dのセットアップ処理
       camera = createCamera();
       renderer = createRenderer();
       scene = createScene();
 
+      // 平行光源のセットアップとシーンへの追加
       const directionalLight = createDirectionalLight();
       scene.add(directionalLight);
+
+      // CameraHelperのセットアップとシーンへの追加
       cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
       scene.add(cameraHelper);
-      cameraHelper.visible = showCameraHelper.value;
+      cameraHelper.visible = showCameraHelper.value; // CameraHelperの初期表示状態の設定
 
-      scene.add(new THREE.GridHelper(20, 20));
-
-      cube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshPhongMaterial({ color: "springgreen" }));
+      // キューブのセットアップとシーンへの追加
+      cube = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshPhongMaterial({ color: "springgreen" }));
       cube.castShadow = true;
       cube.position.y = (cube.geometry as THREE.BoxGeometry).parameters.height / 2;
       scene.add(cube);
 
-      // OBBの計算とヘルパーの追加
+      // キューブのOBBの計算とヘルパーの追加
       new THREE.Box3().setFromObject(cube);
       obbHelper = new THREE.BoxHelper(cube, 0xff0000); // 赤色でOBBを表示
       obbHelper.visible = showOBB.value;
       scene.add(obbHelper);
 
-      new OrbitControls(camera, renderer.domElement);
-
-      animate();
+      new OrbitControls(camera, renderer.domElement); // カメラのコントロールのセットアップ
+      animate(); // アニメーションの開始
     });
 
     // コンポーネントがアンマウントされる前の処理
