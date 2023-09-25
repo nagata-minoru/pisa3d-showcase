@@ -161,8 +161,6 @@ export default {
       const sphereMaterial = new THREE.MeshPhongMaterial({ color: "blue" });
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       sphere.position.set(x, y, z);
-      sphere.castShadow = true;
-      sphere.receiveShadow = true;
       return sphere;
     };
 
