@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
+  import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -162,6 +162,7 @@ export default {
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       sphere.position.set(x, y, z);
       sphere.castShadow = true;
+      sphere.receiveShadow = true;
       return sphere;
     };
 
@@ -180,10 +181,17 @@ export default {
         loader.load(
           `${process.env.BASE_URL}ennchuBaoundingBox.glb`,
           (gltf) => {
+            gltf.scene.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.castShadow = true; // メッシュが影を落とすように設定
+                child.receiveShadow = true; // メッシュが影を受けるように設定
+              }
+            });
+
             // モデルのAABBを計算
             const aabb = new THREE.Box3().setFromObject(gltf.scene);
 
-            // モデルのスケールを20倍に変更
+            // モデルのスケールを5倍に変更
             gltf.scene.scale.set(5, 5, 5);
 
             // AABBのサイズと中心を取得
