@@ -4,7 +4,7 @@
     <!-- 3Dレンダリング領域 -->
     <div ref="rendererDom" style="width: 100vw; height: 100vh;"></div>
     <!-- ツールバーの配置 -->
-    <div style="position: absolute; top: 10px; left: 10px;">
+    <div class="toolbar">
       <!-- ワイヤフレーム表示のスイッチ -->
       <div class="form-check form-switch">
         <input
@@ -18,7 +18,7 @@
       </div>
 
       <!-- CameraHelper 表示のスイッチ -->
-      <div class="form-check form-switch" style="margin-top: 10px;">
+      <div class="form-check form-switch">
         <input
           class="form-check-input"
           type="checkbox"
@@ -30,25 +30,25 @@
       </div>
 
       <!-- X軸での回転スイッチ -->
-      <div class="form-check form-switch" style="margin-top: 10px;">
+      <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="rotateXSwitch" v-model="rotateX" />
         <label class="form-check-label" for="rotateXSwitch">X軸で回転</label>
       </div>
 
       <!-- Y軸での回転スイッチ -->
-      <div class="form-check form-switch" style="margin-top: 10px;">
+      <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="rotateYSwitch" v-model="rotateY" />
         <label class="form-check-label" for="rotateYSwitch">Y軸で回転</label>
       </div>
 
       <!-- Z軸での回転スイッチ -->
-      <div class="form-check form-switch" style="margin-top: 10px;">
+      <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="rotateZSwitch" v-model="rotateZ" />
         <label class="form-check-label" for="rotateZSwitch">Z軸で回転</label>
       </div>
 
       <!-- ローテーションリセットボタン -->
-      <div style="margin-top: 10px;">
+      <div class="form-check">
         <button @click="resetRotation" class="btn btn-primary">ローテーションリセット</button>
       </div>
     </div>
@@ -291,5 +291,13 @@ export default {
 </script>
 
 <style scoped>
-/* 必要に応じてスタイルを追加 */
+.toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.form-check {
+  margin-top: 10px;
+}
 </style>
