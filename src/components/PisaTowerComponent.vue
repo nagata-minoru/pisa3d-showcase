@@ -143,7 +143,7 @@ export default {
     // シーンの作成
     const createScene = () => {
       const scene = new THREE.Scene();
-      scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+      scene.add(new THREE.AmbientLight(0xffffff, 0.3));
       scene.add(new THREE.GridHelper(50, 20));
       scene.add(createFloorPlane());
       return scene;
@@ -185,6 +185,11 @@ export default {
               if (child instanceof THREE.Mesh) {
                 child.castShadow = true; // メッシュが影を落とすように設定
                 child.receiveShadow = true; // メッシュが影を受けるように設定
+
+                // メッシュの枠線を表示
+                const edges = new THREE.EdgesGeometry(child.geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 'mediumseagreen' }));
+                child.add(line);
               }
             });
 
