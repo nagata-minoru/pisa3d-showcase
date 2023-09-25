@@ -62,6 +62,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OBB } from "three/examples/jsm/math/OBB";
 
+/**
+ * PisaTowerComponent - 3Dのピサの斜塔を表示するVueコンポーネント
+ */
 export default {
   name: "PisaTowerComponent",
   setup() {
@@ -76,6 +79,7 @@ export default {
     const rotateY = ref(false);
     const rotateZ = ref(false);
 
+    /** @type {OBB} Oriented Bounding Box */
     const obb = new OBB();
 
     let animationId: number;
@@ -86,7 +90,10 @@ export default {
     let glbModel: THREE.Object3D | null = null; // GLBモデルの参照を保存する変数
     let aabb: THREE.Mesh;
 
-    // 平行光源の作成
+    /**
+     * 平行光源を作成する関数
+     * @returns {THREE.DirectionalLight} 作成された平行光源
+     */
     const createDirectionalLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
       directionalLight.position.set(20, 20, 20); // 光の位置を設定
@@ -101,7 +108,10 @@ export default {
       return directionalLight;
     };
 
-    // カメラの作成
+    /**
+     * カメラを作成する関数
+     * @returns {THREE.PerspectiveCamera} 作成されたカメラ
+     */
     const createCamera = () => {
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(15, 15, -15);
@@ -139,7 +149,13 @@ export default {
       return scene;
     };
 
-    // 小さい球を作成する関数
+    /**
+     * 小さい球を作成する関数
+     * @param {number} x - 球のx座標
+     * @param {number} y - 球のy座標
+     * @param {number} z - 球のz座標
+     * @returns {THREE.Mesh} 作成された球
+     */
     const createSmallSphere = (x: number, y: number, z: number): THREE.Mesh => {
       const sphereGeometry = new THREE.SphereGeometry(0.15, 32, 32);
       const sphereMaterial = new THREE.MeshPhongMaterial({ color: "blue" });
@@ -154,7 +170,10 @@ export default {
       aabb: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>
     ];
 
-    // GLBモデルを読み込む関数
+    /**
+     * GLBモデルを読み込む関数
+     * @returns {Promise<GLBModelResult>} ロードされたGLBモデルとAABBのボックス
+     */
     const loadGLBModel = (): Promise<GLBModelResult> => {
       return new Promise((resolve, reject) => {
         const loader = new GLTFLoader();
@@ -201,9 +220,9 @@ export default {
       animationId = requestAnimationFrame(animate);
 
       if (glbModel) {
-        rotateX.value && glbModel.rotateX(0.01);
-        rotateY.value && glbModel.rotateY(0.01);
-        rotateZ.value && glbModel.rotateZ(0.01);
+        rotateX.value && glbModel.rotateX(0.005);
+        rotateY.value && glbModel.rotateY(0.005);
+        rotateZ.value && glbModel.rotateZ(0.005);
       }
 
       // 各小さい球とキューブのOBBとの間で衝突判定を行う
@@ -220,6 +239,9 @@ export default {
       renderer.render(scene, camera);
     };
 
+    /**
+     * ビューポートがリサイズされたときの処理
+     */
     window.onresize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
