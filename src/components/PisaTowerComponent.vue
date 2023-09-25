@@ -59,10 +59,11 @@
 import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OBB } from "three/examples/jsm/math/OBB";
 
 export default {
-  name: "CubeComponent",
+  name: "PisaTowerComponent",
   setup() {
     const rendererDom: Ref<unknown> = ref(null); // レンダリング領域の参照
 
@@ -82,7 +83,8 @@ export default {
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let cameraHelper: THREE.CameraHelper;
-    let cube: THREE.Mesh;
+    let glbModel: THREE.Object3D | null = null; // GLBモデルの参照を保存する変数
+    let aabb: THREE.Mesh;
 
     // 平行光源の作成
     const createDirectionalLight = () => {
@@ -147,16 +149,65 @@ export default {
       return sphere;
     };
 
+    type GLBModelResult = [
+      glbModel: THREE.Group<THREE.Object3DEventMap>,
+      aabb: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>
+    ];
+
+    // GLBモデルを読み込む関数
+    const loadGLBModel = (): Promise<GLBModelResult> => {
+      return new Promise((resolve, reject) => {
+        const loader = new GLTFLoader();
+        loader.load(
+          `${process.env.BASE_URL}ennchuBaoundingBox.glb`,
+          (gltf) => {
+            // モデルのAABBを計算
+            const aabb = new THREE.Box3().setFromObject(gltf.scene);
+
+            // モデルのスケールを20倍に変更
+            gltf.scene.scale.set(5, 5, 5);
+
+            // AABBのサイズと中心を取得
+            const size = new THREE.Vector3();
+            const center = new THREE.Vector3();
+            aabb.getSize(size);
+            aabb.getCenter(center);
+
+            // AABBのボックスを作成
+            const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+            const material = new THREE.MeshPhongMaterial({ color: 'green', wireframe: true });
+            const aabbBox = new THREE.Object3D();
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.receiveShadow = true;
+            mesh.castShadow = true;
+            aabbBox.add(mesh);
+            aabbBox.position.copy(center);
+
+            gltf.scene.add(aabbBox);
+            const glbModel = gltf.scene;
+            resolve([ glbModel, mesh ]);
+          },
+          undefined,
+          (error) => {
+            console.error("An error occurred while loading the GLB model:", error);
+            reject(error);
+          }
+        );
+      });
+    };
+
     // アニメーションのループ処理
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      if (rotateX.value) cube.rotateX(0.01);
-      if (rotateY.value) cube.rotateY(0.01);
-      if (rotateZ.value) cube.rotateZ(0.01);
+      if (glbModel) {
+        rotateX.value && glbModel.rotateX(0.01);
+        rotateY.value && glbModel.rotateY(0.01);
+        rotateZ.value && glbModel.rotateZ(0.01);
+      }
 
       // 各小さい球とキューブのOBBとの間で衝突判定を行う
-      const transformedOBB = obb.clone().applyMatrix4(cube.matrixWorld);
+      const transformedOBB = obb.clone().applyMatrix4(aabb.matrixWorld);
       scene.children.forEach((child) => {
         if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
 
@@ -176,7 +227,7 @@ export default {
     };
 
     // コンポーネントがマウントされたときの処理
-    onMounted(() => {
+    onMounted(async () => {
       // 3Dのセットアップ処理
       camera = createCamera();
       renderer = createRenderer();
@@ -191,18 +242,14 @@ export default {
       scene.add(cameraHelper);
       cameraHelper.visible = showCameraHelper.value; // CameraHelperの初期表示状態の設定
 
-      // キューブのセットアップとシーンへの追加
-      cube = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshPhongMaterial({ color: "springgreen" }));
-      cube.castShadow = true;
+      const cubeHeight = 10;
 
-      const cubeHeight = (cube.geometry as THREE.BoxGeometry).parameters.height;
-      cube.position.y = cubeHeight / 2;
-      updateWireframeVisibility();
-      scene.add(cube);
+      [ glbModel, aabb ] = await loadGLBModel();
+      scene.add(glbModel);
 
-      // キューブのOBBの計算とヘルパーの追加
-      cube.geometry.computeBoundingBox();
-      obb.fromBox3(cube.geometry.boundingBox as THREE.Box3);
+      // キューブのOBBの計算
+      aabb.geometry.computeBoundingBox();
+      obb.fromBox3(aabb.geometry.boundingBox as THREE.Box3);
 
       // キューブに沿って小さい球を10x10x10個追加
       const spacing = 1.2; // 球と球の間のスペース
@@ -223,10 +270,10 @@ export default {
     });
 
     // 各種表示の更新処理
-    const updateWireframeVisibility = () => ((cube.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
+    const updateWireframeVisibility = () => ((aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
-    const resetRotation = () => cube.rotation.set(0, 0, 0); // キューブのローテーションをリセットする関数
+    const resetRotation = () => (glbModel as THREE.Object3D).rotation.set(0, 0, 0); // キューブのローテーションをリセットする関数
 
     return {
       rendererDom,
@@ -237,7 +284,7 @@ export default {
       rotateX,
       rotateY,
       rotateZ,
-      resetRotation
+      resetRotation,
     };
   },
 };

@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <CubeComponent />
+    <PisaTowerComponent />
   </div>
 </template>
 
 <script lang="ts">
-import CubeComponent from './components/CubeComponent.vue';
+import PisaTowerComponent from './components/PisaTowerComponent.vue';
 
 export default {
   name: 'App',
   components: {
-    CubeComponent
+    PisaTowerComponent
   }
 };
 </script>
