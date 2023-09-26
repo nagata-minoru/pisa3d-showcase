@@ -97,7 +97,7 @@ class ExtendedGroup extends THREE.Group {
     this.obb = new OBB();
   }
 
-  get aabb() {
+  get aabb(): THREE.Mesh {
     if (!this._aabb) throw "ExtendedGroup.aabb: _aabb is invalid";
     return this._aabb;
   }
@@ -246,12 +246,23 @@ export default {
         loader.load(
           `${process.env.BASE_URL}ennchuBaoundingBox.glb`,
           (gltf) => {
-            const extendedGroup = new ExtendedGroup();
+            gltf.scene.traverse((child) => {
+             if (child instanceof THREE.Mesh) {
+               child.castShadow = true; // メッシュが影を落とすように設定
+               child.receiveShadow = true; // メッシュが影を受けるように設定
+
+               // メッシュの枠線を表示
+               const edges = new THREE.EdgesGeometry(child.geometry);
+               const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 'mediumseagreen' }));
+               child.add(line);
+             }
+           });
 
             // モデルのスケールを5倍に変更
             gltf.scene.scale.set(5, 5, 5);
 
             // ロードしたモデルをExtendedGroupに追加
+            const extendedGroup = new ExtendedGroup();
             extendedGroup.add(gltf.scene);
             extendedGroup.aabb.castShadow = true;
             extendedGroup.aabb.receiveShadow = true;
@@ -318,8 +329,12 @@ export default {
 
       const cubeHeight = 10;
 
-      glbModel = await loadGLBModel();
-      scene.add(glbModel);
+      try {
+        glbModel = await loadGLBModel();
+        scene.add(glbModel);
+      } catch (error) {
+        console.error("An error occurred while loading the GLB model:", error);
+      }
 
       // キューブに沿って小さい球を10x10x10個追加
       const spacing = 1.2; // 球と球の間のスペース
@@ -340,8 +355,10 @@ export default {
     });
 
     // 各種表示の更新処理
-    const updateWireframeVisibility = () =>
-      (((glbModel as ExtendedGroup).aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
+    const updateWireframeVisibility = () => {
+      if (!glbModel) throw 'updateWireframeVisibility: invalid glbModel';
+      (glbModel.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
+    }
 
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
