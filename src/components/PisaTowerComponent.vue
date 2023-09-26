@@ -56,15 +56,21 @@
 </template>
 
 <script lang="ts">
+// VueとThree.jsのインポート
 import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
+
+// OrbitControlsとGLTFLoaderをインポート
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+
+// OBB（Oriented Bounding Box）をインポート
 import { OBB } from "three/examples/jsm/math/OBB";
 
 /**
+ * ExtendedGroup クラス。
  * THREE.Group クラスを拡張して、AABB（Axis-Aligned Bounding Box）を自動的に計算し、
- * それを表すMeshをこのグループに追加するクラス。
+ * それを表すMeshをこのグループに追加します。
  *
  * @example
  * const loadGLBModel = (): Promise<THREE.Group> => {
@@ -102,6 +108,11 @@ class ExtendedGroup extends THREE.Group {
     return this._aabb;
   }
 
+  /**
+   * オブジェクトをグループに追加する。
+   * @param {THREE.Object3D[]} object - 追加するオブジェクト。
+   * @returns {ExtendedGroup} このExtendedGroup。
+   */
   add(...object: THREE.Object3D<THREE.Object3DEventMap>[]) {
     super.add(...object);
 
@@ -132,6 +143,10 @@ class ExtendedGroup extends THREE.Group {
     return this;
   }
 
+  /**
+   * Oriented Bounding Box (OBB) を取得する。
+   * @returns {OBB} OBB。
+   */
   getOBB(): OBB {
     if (!this._aabb) throw "ExtendedGroup.getOBB: _aabb is invalid";
     return this.obb.clone().applyMatrix4(this._aabb.matrixWorld);
@@ -146,7 +161,7 @@ export default {
   setup() {
     const rendererDom: Ref<unknown> = ref(null); // レンダリング領域の参照
 
-    // 各種状態の定義
+    // ワイヤフレームとカメラヘルパーの表示状態
     const isWireframe = ref(true);
     const showCameraHelper = ref(false);
 
@@ -155,6 +170,7 @@ export default {
     const rotateY = ref(false);
     const rotateZ = ref(false);
 
+    // その他の変数と初期化処理
     let animationId: number;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
@@ -354,18 +370,24 @@ export default {
       cancelAnimationFrame(animationId);
     });
 
-    // 各種表示の更新処理
+    /**
+     * ワイヤフレームの表示を更新します。
+     */
     const updateWireframeVisibility = () => {
       if (!glbModel) throw 'updateWireframeVisibility: invalid glbModel';
       (glbModel.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
     }
 
+    /**
+     * CameraHelperの表示を更新します。
+     */
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
     // キューブのローテーションをリセットする関数
     const resetRotation = () => (glbModel as THREE.Object3D).rotation.set(0, 0, 0);
 
     return {
+      // レンダリング用のDOM要素と状態変数を返す
       rendererDom,
       isWireframe,
       updateWireframeVisibility,
