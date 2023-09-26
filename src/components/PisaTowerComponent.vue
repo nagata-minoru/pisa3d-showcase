@@ -56,11 +56,87 @@
 </template>
 
 <script lang="ts">
-  import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
+import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OBB } from "three/examples/jsm/math/OBB";
+
+/**
+ * THREE.Group クラスを拡張して、AABB（Axis-Aligned Bounding Box）を自動的に計算し、
+ * それを表すMeshをこのグループに追加するクラス。
+ *
+ * @example
+ * const loadGLBModel = (): Promise<THREE.Group> => {
+ *   return new Promise((resolve, reject) => {
+ *     const loader = new GLTFLoader();
+ *     loader.load(
+ *       `${process.env.BASE_URL}your_model.glb`,
+ *       (gltf) => {
+ *         const extendedGroup = new ExtendedGroup();
+ *         // ロードしたモデルをExtendedGroupに追加
+ *         extendedGroup.add(gltf.scene);
+ *         resolve(extendedGroup);
+ *       },
+ *       undefined,
+ *       (error) => {
+ *         console.error("An error occurred while loading the GLB model:", error);
+ *         reject(error);
+ *       }
+ *     );
+ *   });
+ * };
+ */
+class ExtendedGroup extends THREE.Group {
+  _aabb: THREE.Mesh | null;
+  obb: OBB;
+
+  constructor() {
+    super();
+    this._aabb = null;
+    this.obb = new OBB();
+  }
+
+  get aabb() {
+    if (!this._aabb) throw "ExtendedGroup.aabb: _aabb is invalid";
+    return this._aabb;
+  }
+
+  add(...object: THREE.Object3D<THREE.Object3DEventMap>[]) {
+    super.add(...object);
+
+    const box = new THREE.Box3();
+    box.setFromObject(this);
+
+    // AABBのサイズと中心を取得
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    // AABBを表すMeshを作成
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const material = new THREE.MeshPhongMaterial({
+      color: `green`,
+      wireframe: true,
+    });
+
+    this._aabb = new THREE.Mesh(geometry, material);
+    this._aabb.position.copy(center);
+
+    // AABB Meshをこのグループに追加
+    super.add(this._aabb);
+    this._aabb.geometry.computeBoundingBox();
+    this.obb.fromBox3(this._aabb.geometry.boundingBox as THREE.Box3);
+
+    return this;
+  }
+
+  getOBB(): OBB {
+    if (!this._aabb) throw "ExtendedGroup.getOBB: _aabb is invalid";
+    return this.obb.clone().applyMatrix4(this._aabb.matrixWorld);
+  }
+}
 
 /**
  * PisaTowerComponent - 3Dのピサの斜塔を表示するVueコンポーネント
@@ -79,16 +155,12 @@ export default {
     const rotateY = ref(false);
     const rotateZ = ref(false);
 
-    /** @type {OBB} Oriented Bounding Box */
-    const obb = new OBB();
-
     let animationId: number;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let renderer: THREE.WebGLRenderer;
     let cameraHelper: THREE.CameraHelper;
-    let glbModel: THREE.Object3D | null = null; // GLBモデルの参照を保存する変数
-    let aabb: THREE.Mesh;
+    let glbModel: ExtendedGroup | null = null; // GLBモデルの参照を保存する変数
 
     /**
      * 平行光源を作成する関数
@@ -164,58 +236,27 @@ export default {
       return sphere;
     };
 
-    type GLBModelResult = [
-      glbModel: THREE.Group<THREE.Object3DEventMap>,
-      aabb: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>
-    ];
-
     /**
      * GLBモデルを読み込む関数
-     * @returns {Promise<GLBModelResult>} ロードされたGLBモデルとAABBのボックス
+     * @returns {Promise<ExtendedGroup>} ロードされたGLBモデルとAABBのボックス
      */
-    const loadGLBModel = (): Promise<GLBModelResult> => {
+    const loadGLBModel = (): Promise<ExtendedGroup> => {
       return new Promise((resolve, reject) => {
         const loader = new GLTFLoader();
         loader.load(
           `${process.env.BASE_URL}ennchuBaoundingBox.glb`,
           (gltf) => {
-            gltf.scene.traverse((child) => {
-              if (child instanceof THREE.Mesh) {
-                child.castShadow = true; // メッシュが影を落とすように設定
-                child.receiveShadow = true; // メッシュが影を受けるように設定
-
-                // メッシュの枠線を表示
-                const edges = new THREE.EdgesGeometry(child.geometry);
-                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 'mediumseagreen' }));
-                child.add(line);
-              }
-            });
-
-            // モデルのAABBを計算
-            const aabb = new THREE.Box3().setFromObject(gltf.scene);
+            const extendedGroup = new ExtendedGroup();
 
             // モデルのスケールを5倍に変更
             gltf.scene.scale.set(5, 5, 5);
 
-            // AABBのサイズと中心を取得
-            const size = new THREE.Vector3();
-            const center = new THREE.Vector3();
-            aabb.getSize(size);
-            aabb.getCenter(center);
+            // ロードしたモデルをExtendedGroupに追加
+            extendedGroup.add(gltf.scene);
+            extendedGroup.aabb.castShadow = true;
+            extendedGroup.aabb.receiveShadow = true;
 
-            // AABBのボックスを作成
-            const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-            const material = new THREE.MeshPhongMaterial({ color: 'green', wireframe: true });
-            const aabbBox = new THREE.Object3D();
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.receiveShadow = true;
-            mesh.castShadow = true;
-            aabbBox.add(mesh);
-            aabbBox.position.copy(center);
-
-            gltf.scene.add(aabbBox);
-            const glbModel = gltf.scene;
-            resolve([ glbModel, mesh ]);
+            resolve(extendedGroup);
           },
           undefined,
           (error) => {
@@ -237,7 +278,7 @@ export default {
       }
 
       // 各小さい球とキューブのOBBとの間で衝突判定を行う
-      const transformedOBB = obb.clone().applyMatrix4(aabb.matrixWorld);
+      const transformedOBB = glbModel?.getOBB() as OBB;
       scene.children.forEach((child) => {
         if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
 
@@ -277,12 +318,8 @@ export default {
 
       const cubeHeight = 10;
 
-      [ glbModel, aabb ] = await loadGLBModel();
+      glbModel = await loadGLBModel();
       scene.add(glbModel);
-
-      // キューブのOBBの計算
-      aabb.geometry.computeBoundingBox();
-      obb.fromBox3(aabb.geometry.boundingBox as THREE.Box3);
 
       // キューブに沿って小さい球を10x10x10個追加
       const spacing = 1.2; // 球と球の間のスペース
@@ -303,10 +340,13 @@ export default {
     });
 
     // 各種表示の更新処理
-    const updateWireframeVisibility = () => ((aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
+    const updateWireframeVisibility = () =>
+      (((glbModel as ExtendedGroup).aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value);
+
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
-    const resetRotation = () => (glbModel as THREE.Object3D).rotation.set(0, 0, 0); // キューブのローテーションをリセットする関数
+    // キューブのローテーションをリセットする関数
+    const resetRotation = () => (glbModel as THREE.Object3D).rotation.set(0, 0, 0);
 
     return {
       rendererDom,
