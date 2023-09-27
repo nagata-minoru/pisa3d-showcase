@@ -16,11 +16,5 @@ module.exports = {
         minRatio: 0.8,
       }),
     ],
-
-    performance: {
-      hints: 'warning',
-      maxAssetSize: 700_000, // バイト単位での個々のアセットの最大サイズ
-      maxEntrypointSize: 1_000_000, // バイト単位でのエントリポイントの最大サイズ
-    },
   },
 };
