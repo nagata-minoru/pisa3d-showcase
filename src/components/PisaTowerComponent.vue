@@ -260,7 +260,7 @@ export default {
       return new Promise((resolve, reject) => {
         const loader = new GLTFLoader();
         loader.load(
-          `${process.env.BASE_URL}ennchuBaoundingBox.glb`,
+          `${process.env.BASE_URL}target.glb`,
           (gltf) => {
             gltf.scene.traverse((child) => {
              if (child instanceof THREE.Mesh) {
@@ -274,8 +274,8 @@ export default {
              }
            });
 
-            // モデルのスケールを5倍に変更
-            gltf.scene.scale.set(5, 5, 5);
+            // // モデルのスケールを5倍に変更
+            // gltf.scene.scale.set(5, 5, 5);
 
             // ロードしたモデルをExtendedGroupに追加
             const extendedGroup = new ExtendedGroup();
