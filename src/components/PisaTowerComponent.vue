@@ -51,6 +51,18 @@
       <div class="form-check">
         <button @click="resetRotation" class="btn btn-primary">ローテーションリセット</button>
       </div>
+
+      <!-- 立方体の追加ボタン -->
+      <div class="form-check">
+        <button @click="addCube" class="btn btn-primary">立方体を追加</button>
+      </div>
+
+      <!-- 追加した立方体の削除ボタン -->
+      <div class="form-check">
+        <button @click="removeCubes" class="btn btn-secondary" :disabled="cubeCount === 0">
+          追加した立方体を削除（{{ cubeCount }}）
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -66,6 +78,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // AABB・OBB付きのグループ
 import { ExtendedGroup } from "../ExtendedGroup";
+import { createCube } from "../createCube";
 
 /**
  * PisaTowerComponent - 3Dのピサの斜塔を表示するVueコンポーネント
@@ -91,6 +104,14 @@ export default {
     let renderer: THREE.WebGLRenderer;
     let cameraHelper: THREE.CameraHelper;
     let glbModel: ExtendedGroup | null = null; // GLBモデルの参照を保存する変数
+    const cubes: ExtendedGroup[] = []; // 「立方体を追加」で追加した立方体
+    const cubeCount = ref(0); // 追加した立方体の数（削除ボタンの表示用）
+
+    /**
+     * 回転・衝突判定・ワイヤフレーム表示の対象（GLBモデルと追加した立方体）を返す。
+     * @returns {ExtendedGroup[]} 対象のグループ。GLBモデルの読み込みに失敗した場合は立方体だけ。
+     */
+    const targets = () => (glbModel ? [glbModel, ...cubes] : cubes);
 
     /**
      * 平行光源を作成する関数
@@ -212,23 +233,22 @@ export default {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      // GLBモデルの読み込みに失敗した場合は回転と衝突判定を行わない
-      if (glbModel) {
-        rotateX.value && glbModel.rotateX(0.005);
-        rotateY.value && glbModel.rotateY(0.005);
-        rotateZ.value && glbModel.rotateZ(0.005);
+      targets().forEach((target) => {
+        rotateX.value && target.rotateX(0.005);
+        rotateY.value && target.rotateY(0.005);
+        rotateZ.value && target.rotateZ(0.005);
+      });
 
-        // 各小さい球とキューブのOBBとの間で衝突判定を行う
-        const transformedOBB = glbModel.getOBB();
-        scene.children.forEach((child) => {
-          if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
+      // 各小さい球と、GLBモデル・立方体のOBBとの間で衝突判定を行う
+      // （対象がない場合はすべて青になる）
+      const transformedOBBs = targets().map((target) => target.getOBB());
+      scene.children.forEach((child) => {
+        if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
 
-          // 衝突した場合球の色を赤に, そうでない場合は青に変更
-          (child.material as THREE.MeshPhongMaterial).color.set(
-            transformedOBB.containsPoint(child.position) ? "red" : "blue"
-          );
-        });
-      }
+        // いずれかのOBBの内側にある場合は球の色を赤に, そうでない場合は青に変更
+        const hit = transformedOBBs.some((obb) => obb.containsPoint(child.position));
+        (child.material as THREE.MeshPhongMaterial).color.set(hit ? "red" : "blue");
+      });
 
       renderer.render(scene, camera);
     };
@@ -289,8 +309,9 @@ export default {
      * ワイヤフレームの表示を更新します。
      */
     const updateWireframeVisibility = () => {
-      if (!glbModel) return; // GLBモデルの読み込みに失敗した場合は何もしない
-      (glbModel.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
+      targets().forEach((target) => {
+        (target.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
+      });
     }
 
     /**
@@ -298,8 +319,44 @@ export default {
      */
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
-    // キューブのローテーションをリセットする関数
-    const resetRotation = () => glbModel?.rotation.set(0, 0, 0);
+    // GLBモデルと立方体のローテーションをリセットする関数
+    const resetRotation = () => targets().forEach((target) => target.rotation.set(0, 0, 0));
+
+    /**
+     * 球を並べた範囲の中に、ランダムなサイズ・位置・色の立方体を追加します。
+     */
+    const addCube = () => {
+      const size = THREE.MathUtils.randFloat(1.5, 3);
+      const position = new THREE.Vector3(
+        THREE.MathUtils.randFloat(-4, 4.8),
+        THREE.MathUtils.randFloat(1, 9.8),
+        THREE.MathUtils.randFloat(-4, 4.8)
+      );
+      const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
+
+      const cube = createCube(size, position, color);
+      (cube.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
+      scene.add(cube);
+      cubes.push(cube);
+      cubeCount.value = cubes.length;
+    };
+
+    /**
+     * 追加した立方体をすべて削除します（GLBモデルは残します）。
+     */
+    const removeCubes = () => {
+      cubes.forEach((cube) => {
+        scene.remove(cube);
+        cube.traverse((child) => {
+          if (!(child instanceof THREE.Mesh)) return;
+
+          child.geometry.dispose();
+          (child.material as THREE.Material).dispose();
+        });
+      });
+      cubes.length = 0;
+      cubeCount.value = 0;
+    };
 
     return {
       // レンダリング用のDOM要素と状態変数を返す
@@ -312,6 +369,9 @@ export default {
       rotateY,
       rotateZ,
       resetRotation,
+      addCube,
+      removeCubes,
+      cubeCount,
     };
   },
 };
