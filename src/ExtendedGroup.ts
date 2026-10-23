@@ -52,6 +52,13 @@ export class ExtendedGroup extends THREE.Group {
   add(...object: THREE.Object3D<THREE.Object3DEventMap>[]) {
     super.add(...object);
 
+    // 2回目以降は古いAABBを取り除いてから作り直す（マテリアルはワイヤフレーム表示の設定ごと引き継ぐ）
+    const oldAABB = this._aabb;
+    if (oldAABB) {
+      this.remove(oldAABB);
+      oldAABB.geometry.dispose();
+    }
+
     const box = new THREE.Box3();
     box.setFromObject(this);
 
@@ -63,7 +70,7 @@ export class ExtendedGroup extends THREE.Group {
 
     // AABBを表すMeshを作成
     const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-    const material = new THREE.MeshPhongMaterial({
+    const material = oldAABB?.material ?? new THREE.MeshPhongMaterial({
       color: `green`,
       wireframe: true,
     });
