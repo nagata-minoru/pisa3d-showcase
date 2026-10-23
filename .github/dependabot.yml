@@ -11,6 +11,10 @@ updates:
     groups:
       dependencies:
         patterns: ['*']
+    # package.json の typescript は typescript-eslint と vue-tsc 向けの TypeScript 6 API（@typescript/typescript6 の別名）なので、7 以上にしない
+    ignore:
+      - dependency-name: typescript
+        versions: ['>= 7']
   - package-ecosystem: github-actions
     directory: /
     schedule:

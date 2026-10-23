@@ -104,7 +104,14 @@ yarn type-check
 yarn lint
 ```
 
-`yarn type-check` は vue-tsc で `.vue` ファイルを含めて型を検査します（Vite はビルド時に型検査を行いません）。
+`yarn type-check` は vue-tsc で `.vue` ファイルを含めて型を検査したあと、TypeScript 7 の `tsc` で `.ts` ファイルを検査します（Vite はビルド時に型検査を行いません）。
+
+TypeScript 7.0 には他のツールから使う API がないため、TypeScript は 6 と 7 を両方入れています。
+
+- `typescript`：TypeScript 6 の API（`@typescript/typescript6` の別名）。typescript-eslint と vue-tsc が使う
+- `@typescript/native`：TypeScript 7（`typescript@7` の別名）。`tsc` コマンドはこちらを使う
+
+typescript-eslint と vue-tsc が TypeScript 7 の API に対応したら、6 は外せます。
 `yarn lint` はファイルを書き換えません。自動修正するときは `yarn lint --fix` を実行します。
 
 ## テスト
@@ -131,7 +138,7 @@ GitHub Actions（`.github/workflows/ci.yml`）で、PR と `main` への push �
 ## 使用技術
 
 - Vue 3
-- TypeScript
+- TypeScript 7（Lint と vue-tsc は TypeScript 6 の API を使用）
 - Three.js（GLTFLoader, OrbitControls, OBB）
 - Bootstrap 5
 - Vite
