@@ -6,8 +6,4 @@ export default defineConfig({
   // GitHub Pages のサブパス（/pisa3d-showcase/）でも動くよう相対パスで出力する
   base: './',
   plugins: [vue()],
-  build: {
-    // GitHub Pages は main ブランチの /docs を公開している
-    outDir: 'docs',
-  },
 })

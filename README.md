@@ -48,8 +48,8 @@ src/components/PisaTowerComponent.vue  3D シーンの構築・アニメーシ�
 src/ExtendedGroup.ts                   AABB・OBB を自動で作る THREE.Group の拡張クラス
 src/ExtendedGroup.test.ts              ExtendedGroup のテスト（Vitest）
 index.html                             Vite のエントリ HTML（src/main.ts を読み込む）
-vite.config.ts                         Vite の設定（base: './', 出力先: docs/）
-docs/                                  本番ビルドの出力先（GitHub Pages で公開）
+vite.config.ts                         Vite の設定（base: './'）
+.github/workflows/ci.yml               CI（Lint・型チェック・テスト・ビルド）と GitHub Pages への公開
 ```
 
 ## セットアップ
@@ -79,7 +79,7 @@ yarn serve
 yarn build
 ```
 
-`docs/` に出力されます（既存の `docs/` は上書きされます）。
+`dist/` に出力されます（Git の管理対象外です）。
 アセットは相対パスで参照するため、GitHub Pages のサブパス（`/pisa3d-showcase/`）でもそのまま動きます。
 
 ビルド結果をローカルで確認するには、次を実行します（通常は http://localhost:4173/ ）。
@@ -107,6 +107,15 @@ yarn test
 Vitest で `src/**/*.test.ts` を実行します。
 描画（WebGL）は対象外で、`ExtendedGroup` の AABB の作成と、回転・移動させたときの OBB の内外判定を確認しています。
 
+## CI と公開
+
+GitHub Actions（`.github/workflows/ci.yml`）で、PR と `main` への push のたびに Lint・型チェック・テスト・ビルドを実行します。
+
+`main` への push では、すべて成功したときだけビルド結果を GitHub Pages に公開します。
+公開先: https://nagata-minoru.github.io/pisa3d-showcase/
+
+ビルド結果はリポジトリにコミットしません。
+
 ## 使用技術
 
 - Vue 3
@@ -115,3 +124,4 @@ Vitest で `src/**/*.test.ts` を実行します。
 - Bootstrap 5
 - Vite
 - Vitest
+- GitHub Actions / GitHub Pages

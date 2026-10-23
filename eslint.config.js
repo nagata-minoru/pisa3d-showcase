@@ -4,7 +4,7 @@ import { withVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 
 // 旧設定（package.json の eslintConfig）と同じルール構成にしている
 export default withVueTs(
-  { ignores: ['docs/**'] },
+  { ignores: ['dist/**'] },
   pluginVue.configs['flat/essential'],
   js.configs.recommended,
   vueTsConfigs.base,
