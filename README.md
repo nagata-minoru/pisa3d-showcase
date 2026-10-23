@@ -4,12 +4,14 @@ Vue 3 + TypeScript + Three.js で作った、3D モデルと点群の衝突判�
 
 GLB 形式の 3D モデル（`public/target.glb`）を読み込み、その周囲に 10×10×10 個の小さな球を格子状に並べます。
 モデルを回転させると、モデルを囲む OBB（Oriented Bounding Box）の内側に入った球が赤く、外側の球が青く表示されます。
+ボタンで立方体を追加することもでき、立方体もモデルと同じように回転・衝突判定の対象になります。
 
 ## 画面の内容
 
 - 床（黄褐色の平面）とグリッド
 - GLB モデル（メッシュの輪郭線を緑で表示）
 - モデルを囲むバウンディングボックス（緑のワイヤフレーム）
+- 「立方体を追加」で追加したランダムな大きさ・位置・色の立方体（それぞれ緑のバウンディングボックス付き）
 - 1000 個の小さな球（OBB の内側なら赤、外側なら青）
 - 平行光源による影
 
@@ -23,8 +25,10 @@ GLB 形式の 3D モデル（`public/target.glb`）を読み込み、その周�
 |---|---|
 | ワイヤフレーム表示 | バウンディングボックスをワイヤフレームで描くか、塗りつぶすかを切り替える |
 | CameraHelper 表示 | 平行光源の影を計算する範囲を表示する |
-| X軸で回転 / Y軸で回転 / Z軸で回転 | モデルを各軸まわりに回転させ続ける（同時に複数オン可） |
-| ローテーションリセット | モデルの回転を初期状態に戻す |
+| X軸で回転 / Y軸で回転 / Z軸で回転 | モデルと追加した立方体を各軸まわりに回転させ続ける（同時に複数オン可） |
+| ローテーションリセット | モデルと追加した立方体の回転を初期状態に戻す |
+| 立方体を追加 | ランダムな大きさ・位置・色の立方体を 1 つ追加する |
+| 追加した立方体を削除（n） | 追加した立方体をすべて削除する（n は追加済みの数） |
 
 ## 衝突判定の仕組み
 
@@ -33,6 +37,8 @@ GLB 形式の 3D モデル（`public/target.glb`）を読み込み、その周�
 1. 読み込んだモデルから AABB（軸に沿った外接箱）を計算し、ワイヤフレームの箱としてグループに追加する
 2. その箱から OBB を作り、グループと一緒に回転するようにする
 3. 毎フレーム、回転後の OBB に各球の中心が含まれるかを判定し、球の色を変える
+
+追加した立方体も `src/createCube.ts` で同じ `ExtendedGroup` に入れて作るため、モデルと立方体のどれか 1 つの OBB にでも含まれる球が赤くなります。
 
 判定はモデルの形状そのものではなく外接箱で行うため、モデルの穴の部分にある球も赤くなります。
 
@@ -47,6 +53,8 @@ src/App.vue                            PisaTowerComponent を表示するだけ�
 src/components/PisaTowerComponent.vue  3D シーンの構築・アニメーション・衝突判定・ツールバー
 src/ExtendedGroup.ts                   AABB・OBB を自動で作る THREE.Group の拡張クラス
 src/ExtendedGroup.test.ts              ExtendedGroup のテスト（Vitest）
+src/createCube.ts                      追加用の立方体を ExtendedGroup に入れて作る関数
+src/createCube.test.ts                 createCube のテスト（Vitest）
 index.html                             Vite のエントリ HTML（src/main.ts を読み込む）
 vite.config.ts                         Vite の設定（base: './'）
 .github/workflows/ci.yml               CI（Lint・型チェック・テスト・ビルド）と GitHub Pages への公開
@@ -105,7 +113,7 @@ yarn test
 ```
 
 Vitest で `src/**/*.test.ts` を実行します。
-描画（WebGL）は対象外で、`ExtendedGroup` の AABB の作成と、回転・移動させたときの OBB の内外判定を確認しています。
+描画（WebGL）は対象外で、`ExtendedGroup` の AABB の作成と、回転・移動させたときの OBB の内外判定、`createCube` で作った立方体の AABB・OBB を確認しています。
 
 ## CI と公開
 
