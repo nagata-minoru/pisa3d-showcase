@@ -2,12 +2,14 @@
   "name": "cube-toggler-3d",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "serve": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint --ext .ts,.vue src"
+    "lint": "eslint --ext .ts,.vue src",
+    "test": "vitest run"
   },
   "dependencies": {
     "bootstrap": "^5.3.2",
@@ -24,6 +26,7 @@
     "eslint-plugin-vue": "^8.0.3",
     "typescript": "~5.9.3",
     "vite": "8.3.4",
+    "vitest": "5.0.3",
     "vue-tsc": "3.3.12"
   },
   "eslintConfig": {

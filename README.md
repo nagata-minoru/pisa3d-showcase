@@ -28,7 +28,7 @@ GLB 形式の 3D モデル（`public/target.glb`）を読み込み、その周�
 
 ## 衝突判定の仕組み
 
-`src/components/PisaTowerComponent.vue` の `ExtendedGroup` クラスが中心です。
+`src/ExtendedGroup.ts` の `ExtendedGroup` クラスが中心です。
 
 1. 読み込んだモデルから AABB（軸に沿った外接箱）を計算し、ワイヤフレームの箱としてグループに追加する
 2. その箱から OBB を作り、グループと一緒に回転するようにする
@@ -45,6 +45,8 @@ public/target.glb                      表示する 3D モデル
 src/main.ts                            エントリポイント（Bootstrap の CSS を読み込み、Vue アプリを起動）
 src/App.vue                            PisaTowerComponent を表示するだけのルートコンポーネント
 src/components/PisaTowerComponent.vue  3D シーンの構築・アニメーション・衝突判定・ツールバー
+src/ExtendedGroup.ts                   AABB・OBB を自動で作る THREE.Group の拡張クラス
+src/ExtendedGroup.test.ts              ExtendedGroup のテスト（Vitest）
 index.html                             Vite のエントリ HTML（src/main.ts を読み込む）
 vite.config.ts                         Vite の設定（base: './', 出力先: docs/）
 docs/                                  本番ビルドの出力先（GitHub Pages で公開）
@@ -96,6 +98,15 @@ yarn lint
 `yarn type-check` は vue-tsc で `.vue` ファイルを含めて型を検査します（Vite はビルド時に型検査を行いません）。
 `yarn lint` はファイルを書き換えません。自動修正するときは `yarn lint --fix` を実行します。
 
+## テスト
+
+```
+yarn test
+```
+
+Vitest で `src/**/*.test.ts` を実行します。
+描画（WebGL）は対象外で、`ExtendedGroup` の AABB の作成と、回転・移動させたときの OBB の内外判定を確認しています。
+
 ## 使用技術
 
 - Vue 3
@@ -103,3 +114,4 @@ yarn lint
 - Three.js（GLTFLoader, OrbitControls, OBB）
 - Bootstrap 5
 - Vite
+- Vitest
