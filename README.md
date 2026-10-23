@@ -58,6 +58,7 @@ src/createCube.test.ts                 createCube のテスト（Vitest）
 index.html                             Vite のエントリ HTML（src/main.ts を読み込む）
 vite.config.ts                         Vite の設定（base: './'）
 .github/workflows/ci.yml               CI（Lint・型チェック・テスト・ビルド）と GitHub Pages への公開
+.github/dependabot.yml                 Dependabot による依存パッケージの更新設定
 ```
 
 ## セットアップ
@@ -123,6 +124,9 @@ GitHub Actions（`.github/workflows/ci.yml`）で、PR と `main` への push �
 公開先: https://nagata-minoru.github.io/pisa3d-showcase/
 
 ビルド結果はリポジトリにコミットしません。
+
+依存パッケージ（npm）と GitHub Actions の更新は、Dependabot（`.github/dependabot.yml`）が週 1 回 PR にまとめて作ります。
+公開から 14 日たっていない版は対象にしません。
 
 ## 使用技術
 
