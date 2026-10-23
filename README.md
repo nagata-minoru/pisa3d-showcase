@@ -45,7 +45,9 @@ public/target.glb                      表示する 3D モデル
 src/main.ts                            エントリポイント（Bootstrap の CSS を読み込み、Vue アプリを起動）
 src/App.vue                            PisaTowerComponent を表示するだけのルートコンポーネント
 src/components/PisaTowerComponent.vue  3D シーンの構築・アニメーション・衝突判定・ツールバー
-docs/                                  本番ビルドの出力先（vue.config.js の outputDir）
+index.html                             Vite のエントリ HTML（src/main.ts を読み込む）
+vite.config.ts                         Vite の設定（base: './', 出力先: docs/）
+docs/                                  本番ビルドの出力先（GitHub Pages で公開）
 ```
 
 ## セットアップ
@@ -59,7 +61,7 @@ yarn install
 Yarn 本体は `.yarn/releases/` に同梱しており、`.yarnrc.yml` の `yarnPath` で指定しています。
 そのため、グローバルに入っている yarn が 1.x でも、このディレクトリでは自動的に Yarn 4 が使われます（corepack は不要です）。
 
-Vue CLI との互換性のため、Plug'n'Play ではなく `node_modules` を使う設定（`nodeLinker: node-modules`）にしています。
+Plug'n'Play ではなく `node_modules` を使う設定（`nodeLinker: node-modules`）にしています。
 
 ## 開発サーバーの起動
 
@@ -67,13 +69,7 @@ Vue CLI との互換性のため、Plug'n'Play ではなく `node_modules` を�
 yarn serve
 ```
 
-起動後、ターミナルに表示される URL（通常は http://localhost:8080/ ）をブラウザで開きます。
-
-新しい Node.js で OpenSSL 関連のエラーが出る場合は、次のように起動してください。
-
-```
-NODE_OPTIONS=--openssl-legacy-provider yarn serve
-```
+起動後、ターミナルに表示される URL（通常は http://localhost:5173/ ）をブラウザで開きます。
 
 ## 本番ビルド
 
@@ -82,14 +78,23 @@ yarn build
 ```
 
 `docs/` に出力されます（既存の `docs/` は上書きされます）。
+アセットは相対パスで参照するため、GitHub Pages のサブパス（`/pisa3d-showcase/`）でもそのまま動きます。
 
-## Lint
+ビルド結果をローカルで確認するには、次を実行します（通常は http://localhost:4173/ ）。
 
 ```
+yarn preview
+```
+
+## 型チェック・Lint
+
+```
+yarn type-check
 yarn lint
 ```
 
-自動修正も行うため、ファイルが書き換わることがあります。
+`yarn type-check` は vue-tsc で `.vue` ファイルを含めて型を検査します（Vite はビルド時に型検査を行いません）。
+`yarn lint` はファイルを書き換えません。自動修正するときは `yarn lint --fix` を実行します。
 
 ## 使用技術
 
@@ -97,4 +102,4 @@ yarn lint
 - TypeScript
 - Three.js（GLTFLoader, OrbitControls, OBB）
 - Bootstrap 5
-- Vue CLI 5
+- Vite
