@@ -38,6 +38,31 @@ describe("ExtendedGroup", () => {
       expect(group.children).toContain(group.aabb);
     });
 
+    it("2回目以降の追加では、AABBを1つだけ作り直す", () => {
+      const group = new ExtendedGroup();
+      const first = createBox(new THREE.Vector3(2, 2, 2));
+      const second = createBox(new THREE.Vector3(2, 2, 2), new THREE.Vector3(4, 0, 0));
+      group.add(first);
+      const oldAABB = group.aabb;
+      group.add(second);
+
+      expect(group.children).toEqual([first, second, group.aabb]);
+      expect(oldAABB.parent).toBeNull();
+
+      const { parameters } = group.aabb.geometry as THREE.BoxGeometry;
+      expect([parameters.width, parameters.height, parameters.depth]).toEqual([6, 2, 2]);
+      expect(group.aabb.position.toArray()).toEqual([2, 0, 0]);
+    });
+
+    it("作り直したAABBに、ワイヤフレーム表示の設定を引き継ぐ", () => {
+      const group = new ExtendedGroup();
+      group.add(createBox(new THREE.Vector3(2, 2, 2)));
+      (group.aabb.material as THREE.MeshPhongMaterial).wireframe = false;
+      group.add(createBox(new THREE.Vector3(2, 2, 2), new THREE.Vector3(4, 0, 0)));
+
+      expect((group.aabb.material as THREE.MeshPhongMaterial).wireframe).toBe(false);
+    });
+
     it("自分自身を返す", () => {
       const group = new ExtendedGroup();
       expect(group.add(createBox(new THREE.Vector3(1, 1, 1)))).toBe(group);
