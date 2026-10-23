@@ -61,11 +61,11 @@ import { ref, onMounted, onBeforeUnmount, Ref } from "vue";
 import * as THREE from "three";
 
 // OrbitControlsとGLTFLoaderをインポート
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // OBB（Oriented Bounding Box）をインポート
-import { OBB } from "three/examples/jsm/math/OBB";
+import { OBB } from "three/examples/jsm/math/OBB.js";
 
 /**
  * ExtendedGroup クラス。
@@ -77,7 +77,7 @@ import { OBB } from "three/examples/jsm/math/OBB";
  *   return new Promise((resolve, reject) => {
  *     const loader = new GLTFLoader();
  *     loader.load(
- *       `${process.env.BASE_URL}your_model.glb`,
+ *       `${import.meta.env.BASE_URL}your_model.glb`,
  *       (gltf) => {
  *         const extendedGroup = new ExtendedGroup();
  *         // ロードしたモデルをExtendedGroupに追加
@@ -260,7 +260,7 @@ export default {
       return new Promise((resolve, reject) => {
         const loader = new GLTFLoader();
         loader.load(
-          `${process.env.BASE_URL}target.glb`,
+          `${import.meta.env.BASE_URL}target.glb`,
           (gltf) => {
             gltf.scene.traverse((child) => {
              if (child instanceof THREE.Mesh) {
