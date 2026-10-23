@@ -15,7 +15,7 @@ export const createCube = (size: number, position: THREE.Vector3, color: THREE.C
   // 中の球が見えるように半透明にする（depthWriteを切らないと奥の球が隠れる）
   const cube = new THREE.Mesh(
     new THREE.BoxGeometry(size, size, size),
-    new THREE.MeshPhongMaterial({ color, transparent: true, opacity: 0.3, depthWrite: false })
+    new THREE.MeshPhongMaterial({ color, transparent: true, opacity: 0.7, depthWrite: false })
   );
   cube.castShadow = true;
   cube.receiveShadow = true;
