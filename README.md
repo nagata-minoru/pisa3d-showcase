@@ -50,17 +50,16 @@ docs/                                  本番ビルドの出力先（vue.config.
 
 ## セットアップ
 
-パッケージマネージャーには yarn を使います（ロックファイルは `yarn.lock` のみ）。
+パッケージマネージャーには Yarn 4 を使います（ロックファイルは `yarn.lock` のみ）。
 
 ```
 yarn install
 ```
 
-依存パッケージの一部は Node.js 20 までを対象としています。Node.js 21 以降でエラーになる場合は `--ignore-engines` を付けてください。
+Yarn 本体は `.yarn/releases/` に同梱しており、`.yarnrc.yml` の `yarnPath` で指定しています。
+そのため、グローバルに入っている yarn が 1.x でも、このディレクトリでは自動的に Yarn 4 が使われます（corepack は不要です）。
 
-```
-yarn install --ignore-engines
-```
+Vue CLI との互換性のため、Plug'n'Play ではなく `node_modules` を使う設定（`nodeLinker: node-modules`）にしています。
 
 ## 開発サーバーの起動
 
