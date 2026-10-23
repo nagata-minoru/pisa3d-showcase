@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint --ext .ts,.vue src",
+    "lint": "eslint src",
     "test": "vitest run"
   },
   "dependencies": {
@@ -17,35 +17,16 @@
     "vue": "^3.2.13"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/three": "^0.156.0",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
     "@vitejs/plugin-vue": "6.0.9",
-    "@vue/eslint-config-typescript": "^9.1.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3",
+    "@vue/eslint-config-typescript": "14.9.0",
+    "eslint": "10.12.0",
+    "eslint-plugin-vue": "10.11.1",
     "typescript": "~5.9.3",
     "vite": "8.3.4",
     "vitest": "5.0.3",
     "vue-tsc": "3.3.12"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": true,
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/typescript"
-    ],
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    },
-    "rules": {
-      "no-debugger": 0
-    }
   },
   "browserslist": [
     "> 1%",
