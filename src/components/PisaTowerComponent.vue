@@ -298,22 +298,23 @@ export default {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
+      // GLBモデルの読み込みに失敗した場合は回転と衝突判定を行わない
       if (glbModel) {
         rotateX.value && glbModel.rotateX(0.005);
         rotateY.value && glbModel.rotateY(0.005);
         rotateZ.value && glbModel.rotateZ(0.005);
+
+        // 各小さい球とキューブのOBBとの間で衝突判定を行う
+        const transformedOBB = glbModel.getOBB();
+        scene.children.forEach((child) => {
+          if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
+
+          // 衝突した場合球の色を赤に, そうでない場合は青に変更
+          (child.material as THREE.MeshPhongMaterial).color.set(
+            transformedOBB.containsPoint(child.position) ? "red" : "blue"
+          );
+        });
       }
-
-      // 各小さい球とキューブのOBBとの間で衝突判定を行う
-      const transformedOBB = glbModel?.getOBB() as OBB;
-      scene.children.forEach((child) => {
-        if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.SphereGeometry)) return;
-
-        // 衝突した場合球の色を赤に, そうでない場合は青に変更
-        (child.material as THREE.MeshPhongMaterial).color.set(
-          transformedOBB.containsPoint(child.position) ? "red" : "blue"
-        );
-      });
 
       renderer.render(scene, camera);
     };
@@ -374,7 +375,7 @@ export default {
      * ワイヤフレームの表示を更新します。
      */
     const updateWireframeVisibility = () => {
-      if (!glbModel) throw 'updateWireframeVisibility: invalid glbModel';
+      if (!glbModel) return; // GLBモデルの読み込みに失敗した場合は何もしない
       (glbModel.aabb.material as THREE.MeshPhongMaterial).wireframe = isWireframe.value;
     }
 
@@ -384,7 +385,7 @@ export default {
     const updateCameraHelperVisibility = () => (cameraHelper.visible = showCameraHelper.value);
 
     // キューブのローテーションをリセットする関数
-    const resetRotation = () => (glbModel as THREE.Object3D).rotation.set(0, 0, 0);
+    const resetRotation = () => glbModel?.rotation.set(0, 0, 0);
 
     return {
       // レンダリング用のDOM要素と状態変数を返す
