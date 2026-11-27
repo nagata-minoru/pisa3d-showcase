@@ -1316,6 +1316,7 @@ __metadata:
     vite: "npm:8.3.8"
     vitest: "npm:5.1.0"
     vue: "npm:^3.5.45"
+    vue-eslint-parser: "npm:10.4.1"
     vue-tsc: "npm:3.3.14"
   languageName: unknown
   linkType: soft
@@ -2623,7 +2624,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-eslint-parser@npm:^10.4.0":
+"vue-eslint-parser@npm:10.4.1, vue-eslint-parser@npm:^10.4.0":
   version: 10.4.1
   resolution: "vue-eslint-parser@npm:10.4.1"
   dependencies:
